@@ -1,5 +1,7 @@
 # passio
 
+Quick description of how various parts of the site work.
+
 ## Single posts
 
 Each video (standard & extended) gets its own WP post which uses custom fields to pull in pertinant data:
