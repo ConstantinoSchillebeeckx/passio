@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 19.1.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 180.1 42.8" style="enable-background:new 0 0 180.1 42.8;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:#313D46;stroke:#313D46;stroke-width:0.6;stroke-miterlimit:10;}
+	.st1{font-family:'MorningCrescent-Regular';}
+	.st2{font-size:38.9412px;}
+	.st3{fill:none;stroke:url(#SVGID_1_);stroke-width:4;stroke-miterlimit:10;}
+	.st4{fill:url(#SVGID_2_);}
+</style>
+<text transform="matrix(1 0 0 1 0.2997 35.995)" class="st0 st1 st2">PASSI</text>
+<linearGradient id="SVGID_1_" gradientUnits="userSpaceOnUse" x1="72.0572" y1="-174.3678" x2="110.5564" y2="-174.3678" gradientTransform="matrix(0.7071 0.7071 -0.7071 0.7071 -27.0327 78.9534)">
+	<stop  offset="0" style="stop-color:#B8C4C9"/>
+	<stop  offset="0.5508" style="stop-color:#6A7A8B"/>
+</linearGradient>
+<circle class="st3" cx="160.8" cy="20.2" r="17.2"/>
+<text transform="matrix(1 0 0 1 143.2714 35.995)" class="st0 st1 st2">O</text>
+<linearGradient id="SVGID_2_" gradientUnits="userSpaceOnUse" x1="192.6187" y1="8.3714" x2="211.2535" y2="8.3714" gradientTransform="matrix(0.7071 0.7071 -0.7071 0.7071 21.8651 -128.6969)">
+	<stop  offset="0" style="stop-color:#B8C4C9"/>
+	<stop  offset="0.5512" style="stop-color:#6A7A8B"/>
+</linearGradient>
+<polygon class="st4" points="155.3,10.2 171.9,20 155.3,29.8 "/>
+</svg>
