@@ -63,7 +63,7 @@ if (have_posts()): while (have_posts()) : the_post(); ?>
 				<?php }
 
 				if (isset($dat->$id)) {
-					$post_dat = json_decode($dat->$id->longDescription);
+					$post_dat = json_decode($dat->$id->long_description);
 
 					if ($post_dat) {
 						?>

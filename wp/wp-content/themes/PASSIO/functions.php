@@ -1292,7 +1292,7 @@ function passio_search() {
     $tag_search = get_query_var('tag', false);
     foreach ($dat as $id => $vid_dat) {
         if (!$tag_search) { // if doing regulare string search
-            $descrip = strtolower(rtrim($vid_dat->longDescription, "\0"));
+            $descrip = strtolower(rtrim($vid_dat->long_description, "\0"));
             if (strpos($descrip, $term) !== false) {
                 $found[] = $id;
             }
@@ -2571,7 +2571,7 @@ function video_xml($dat, $id, $post_id) {
     $msg = '<url>';
     $msg .= '<loc>' . get_permalink() . '</loc>';
     foreach ($id as $key => $val) {
-        $tmp = json_decode(rtrim($dat[$val]->longDescription, "\0"));
+        $tmp = json_decode(rtrim($dat[$val]->long_description, "\0"));
         $descrip = $tmp->Description;
 
         // if multiple videos, make title and descrip unique
@@ -2612,46 +2612,124 @@ function video_xml($dat, $id, $post_id) {
 add_action( 'wp_ajax_downloadBrightcove', 'download_brightcove' );
 function download_brightcove() {
 
-    $token = 'pzCk4pQq4bMp-Ug-_djkFVqnMMYnr3tGWBTZx6g3Iq_5OLrHBMWVIQ..';
-    $offset = 0;
-    $dat = array(); // object to store return API call data; {video id: {data}}
-    $total_count = 10000000000000; // set initially to very large number to allow for first while iteration
-    $rolling_count = 0;
+    // authorization inspired from
+    // https://support.brightcove.com/getting-access-tokens PHP example
+
+    require_once('cred.php');
+
+    // CORS enablement
+    header("Access-Control-Allow-Origin: *");
+    // set up request for access token
+    $data = array();
+    $client_id     = BC_CLIENT;
+    $client_secret = BC_SECRET;
+    $auth_string   = "{$client_id}:{$client_secret}";
+    $request       = "https://oauth.brightcove.com/v4/access_token?grant_type=client_credentials";
+    $ch            = curl_init($request);
+    curl_setopt_array($ch, array(
+        CURLOPT_POST           => TRUE,
+        CURLOPT_RETURNTRANSFER => TRUE,
+        CURLOPT_SSL_VERIFYPEER => FALSE,
+        CURLOPT_USERPWD        => $auth_string,
+        CURLOPT_HTTPHEADER     => array(
+            'Content-type: application/x-www-form-urlencoded',
+        ),
+        CURLOPT_POSTFIELDS => $data
+    ));
+    $response = curl_exec($ch);
+    curl_close($ch);
+    // Check for errors
+    if ($response === FALSE) {
+        die(curl_error($ch));
+    }
+    // Decode the response
+    $responseData = json_decode($response, TRUE);
+    $access_token = $responseData["access_token"];
+
+    // set up the API call
+    //send the http request
+    $request = 'https://cms.api.brightcove.com/v1/accounts/' . BC_ACCOUNT . '/counts/videos';
+    $ch = curl_init($request);
+    curl_setopt_array($ch, array(
+            CURLOPT_CUSTOMREQUEST  => "GET",
+            CURLOPT_RETURNTRANSFER => TRUE,
+            CURLOPT_SSL_VERIFYPEER => FALSE,
+            CURLOPT_HTTPHEADER     => array(
+                'Content-type: application/json',
+                "Authorization: Bearer {$access_token}",
+            ),
+        ));
+    $response = curl_exec($ch);
+    $responseData = json_decode($response, TRUE);
+    $video_count = intval($responseData['count']);
+    curl_close($ch);
+
     $msg = '';
-    while ($rolling_count < $total_count) {
-        $url = sprintf('https://api.brightcove.com/services/library?command=search_videos&token=%s&get_item_count=true&media_delivery=http&page_number=%s', $token, $offset);
-        $msg .= '<p>Calling brightcove with API call <code><small>' . $url . '</small></code></p>';
-        $query = json_decode(file_get_contents($url));
+    $limit = 100; // number of videos to return for each API call
+    $offset =  0;
+    $dat = array(); // object to store return API call data; {video id: {data}}
+    while ($offset < $video_count) {
+        $request = 'https://cms.api.brightcove.com/v1/accounts/' . BC_ACCOUNT . '/videos';
+        $request .= '?limit=' . $limit . '&offset=' . $offset;
+        $msg .= '<p>Calling brightcove with API call <code><small>' . $request . '</small></code>';
 
-        $total_count = $query->total_count; // total videos in library
-        $items = $query->items;
-        $return_count = count($items); // number of videos returned from API call
-        $rolling_count += $return_count; // number of vidoes we've queried so far
+        $ch = curl_init($request);
+        curl_setopt_array($ch, array(
+                CURLOPT_CUSTOMREQUEST  => "GET",
+                CURLOPT_RETURNTRANSFER => TRUE,
+                CURLOPT_SSL_VERIFYPEER => FALSE,
+                CURLOPT_HTTPHEADER     => array(
+                    'Content-type: application/json',
+                    "Authorization: Bearer {$access_token}",
+                ),
+            ));
+        $response = curl_exec($ch);
+        curl_close($ch);
 
-        $msg .= '<p> Found and downloaded <strong>' . $return_count . '</strong> of <strong>' . $total_count . '</strong> total videos in the PASSIO library.</p>';
-        // reformat return data so that video ID is key
-        if (isset($items)) {
-            foreach ($items as $tmp) {
-                $id = $tmp->id;
-                $dat[$id] = $tmp;
+        $error = FALSE;
+        if ($response === FALSE) {
+            $error = TRUE;
+        } else {
+            $query = json_decode($response);
+            $msg .= '<br>Found <b>' . count($query) . '</b> videos.';
+
+            foreach ($query as $tmp) {
+
+                if (array_key_exists("error_code", $tmp)) {
+                    $error = TRUE;
+                } else {
+                    $id = $tmp->id;
+                    $dat[$id] = $tmp;
+                }
+
             }
         }
-        $offset++;
+        $msg .= '</p>';
+
+        $offset += $limit;
+
     }
 
-    // write data to JSON file
-    $logFileLocation = ABSPATH . "/BC_DB.json";
-    $fileHandle      = fopen($logFileLocation, 'w') or die("-1");
-    fwrite($fileHandle, json_encode($dat));
-    fclose($fileHandle);
-    $msg .= '<hr>';
-    $msg .= '<div style="margin-bottom:15px;" class="alert alert-success" role="alert"><p class="lead"><i class="fa fa-magic" aria-hidden="true"></i> Success!</p></div>';
-    $msg .= '<p class="lead">DB downloaded to <a href="/wp/BC_DB.json">BC_DB.json</a></p>';
 
-    // write video sitemap
-    $msg .= videoSitemap( $dat );
+    if (count($dat)>0 && $error === FALSE) {
+        // write data to JSON file
+        $outFile = 'BC_DB.json';
+        $logFileLocation = ABSPATH  . '/' . $outFile;
+        $fileHandle      = fopen($logFileLocation, 'w') or die("-1");
+        fwrite($fileHandle, json_encode($dat));
+        fclose($fileHandle);
+        $msg .= '<hr>';
+        $msg .= '<div style="margin-bottom:15px;" class="alert alert-success" role="alert"><p class="lead"><i class="fa fa-magic" aria-hidden="true"></i> Success!</p></div>';
+        $msg .= '<p class="lead">DB downloaded to <a href="/wp/' . $outFile . '">' . $outFile . '</a></p>';
 
-    echo  json_encode($msg);
+        // write video sitemap
+        $msg .= videoSitemap( $dat );
+    } else {
+        $msg .= '<h4><code>Something went wrong in the API call, check the ';
+        $msg .= '<a href="https://brightcovelearning.github.io/Brightcove-API-References/cms-api/v1/doc/index.html#api-videoGroup-Get_Videos">docs</a>!</code></h4>';
+    }
+
+    echo json_encode($msg);
 
     wp_die(); // this is required to terminate immediately and return a proper response
 }

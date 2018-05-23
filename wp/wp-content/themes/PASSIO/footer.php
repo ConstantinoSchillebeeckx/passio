@@ -3,7 +3,7 @@
 
 				<!-- copyright -->
 				<p class="copyright">
-					Copyright &copy; <?php echo date('Y'); ?> PASSIO Surgical Education. All Rights Reserved.
+					
 				</p>
 				<!-- /copyright -->
 
