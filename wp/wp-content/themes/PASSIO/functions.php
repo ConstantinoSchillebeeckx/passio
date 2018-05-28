@@ -539,7 +539,7 @@ function publication_head($query) {
 
 
     // display title & tags
-    $post_dat = json_decode(rtrim($query->longDescription, "\0"));
+    $post_dat = json_decode(rtrim($query->long_description, "\0"));
     echo '<p>' . parse_author_dat($post_dat) . '</p>';
     echo '<p><i class="fa fa-calendar fa-lg"></i> ' . get_the_time('F j, Y') . '</p>';
 	if ( isset($post_dat->Disclosure) && $post_dat->Disclosure != '' ) {
@@ -722,7 +722,7 @@ function parse_author_dat($dat) {
 function must_login($query = null, $msg = 'to view the full article and videos on this page.') {
 
 	if ($query) {
-		$post_dat = json_decode($query->longDescription);
+		$post_dat = json_decode($query->long_description);
 
 		echo sprintf('<h1>%s</h1>', $post_dat->Title);
 		echo '<p>' . parse_author_dat($post_dat) . '</p>';
@@ -1286,7 +1286,7 @@ function passio_search() {
         $wpdb->insert('wp_searchstats', array('user_id' => get_current_user_id(), 'term' => get_search_query()), array('%d', '%s'));
     }
 
-	// 1. search json (longDescription) for keyword match -> return ID
+	// 1. search json (long_description) for keyword match -> return ID
     $found = array(); // arr of video_id [custom field value] that match search term
     $term = strtolower(get_search_query());
     $tag_search = get_query_var('tag', false);

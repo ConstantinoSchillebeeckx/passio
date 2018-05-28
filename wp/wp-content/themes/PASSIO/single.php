@@ -46,10 +46,10 @@ $dat = get_db();
 
 					if (isset($dat->$stand_id)) {
 						publication_head($dat->$stand_id);
-                        $tmp = json_decode(rtrim($dat->$stand_id->longDescription, "\0"));
+                        $tmp = json_decode(rtrim($dat->$stand_id->long_description, "\0"));
 					} else if (isset($dat->$pres_id)) {
 						publication_head($dat->$pres_id);
-                        $tmp = json_decode(rtrim($dat->$pres_id->longDescription, "\0"));
+                        $tmp = json_decode(rtrim($dat->$pres_id->long_description, "\0"));
 					}
 
                     // set the meta description, needed for SEO and video sitemap
@@ -118,7 +118,7 @@ $dat = get_db();
                             }
                             
                             if ( $dressing_id) {
-                                $info = json_decode($dat->$dressing_id->longDescription);
+                                $info = json_decode($dat->$dressing_id->long_description);
                                 ?>
                                 <p style="margin-top:30px;" class="lead"><u>Dressing Tutorial</u></p>
                                     <?php echo '<p class="description">' . $info->Description . '</p>'; ?>
